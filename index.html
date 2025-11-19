@@ -46,20 +46,24 @@
         /* Button Styling */
         #noBtn {
             transition: top 0.1s ease, left 0.1s ease; /* Smooth movement */
-            position: relative;
-            z-index: 9999; /* MAXIMUM PRIORITY: Always on top of everything */
-            white-space: nowrap; /* Prevent text wrapping weirdness */
-            max-width: 90vw; /* Ensure it never exceeds 90% of screen width */
+            position: relative; /* Initially relative */
+            z-index: 9999; /* MAXIMUM PRIORITY */
+            white-space: nowrap;
+            max-width: 90vw;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        #yesBtn {
-            transition: transform 0.2s ease;
-            z-index: 1; /* Base level */
+        /* When moved to body, this class ensures it stays properly styled */
+        .fixed-no-btn {
+            position: fixed !important;
         }
 
-        /* Wiggle Animation for No Button */
+        #yesBtn {
+            transition: transform 0.2s ease;
+            z-index: 1;
+        }
+
         .wiggle {
             animation: wiggle 0.5s ease-in-out infinite;
         }
@@ -134,7 +138,6 @@
     </div>
 
     <script>
-        // --- Configuration ---
         const phrases = [
             "Please? 🥹👉🏻👈🏻",
             "Are you sure? 🧐",
@@ -154,6 +157,7 @@
 
         let phraseIndex = 0;
         let scaleFactor = 1;
+        let noBtnMoved = false; // Track if we've moved the button to body
 
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
@@ -176,14 +180,25 @@
 
         // --- Interaction Logic ---
         const moveButton = () => {
+            // 0. DOM TELEPORTATION (The Bug Fix)
+            // We move the button to document.body so it's not affected by parent transforms
+            if (!noBtnMoved) {
+                // Save current position to prevent visual jump before next move
+                const rect = noBtn.getBoundingClientRect();
+                
+                noBtn.style.position = 'fixed';
+                noBtn.style.left = rect.left + 'px';
+                noBtn.style.top = rect.top + 'px';
+                
+                document.body.appendChild(noBtn);
+                noBtnMoved = true;
+            }
+
             // 1. Change text
             noBtn.innerText = phrases[phraseIndex];
             phraseIndex = (phraseIndex + 1) % phrases.length;
 
-            // 2. Force Position Fixed
-            noBtn.style.position = 'fixed';
-            
-            // 3. Get Dimensions & Viewport
+            // 2. Get Dimensions & Viewport
             const btnRect = noBtn.getBoundingClientRect();
             const btnWidth = btnRect.width;
             const btnHeight = btnRect.height;
@@ -191,31 +206,27 @@
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
 
-            // 4. Calculate Boundaries with Smart Center Logic
-            const buffer = 20; // Safe distance from edge
+            // 3. Calculate Boundaries
+            // Use a buffer to keep it inside screen
+            const buffer = 20; 
 
-            // Max possible Left position (Screen Width - Button Width - Buffer)
             const maxAllowedLeft = viewportWidth - btnWidth - buffer;
             const minAllowedLeft = buffer;
             
-            let randomX;
-            let randomY;
-
-            // HORIZONTAL CHECK
-            if (maxAllowedLeft < minAllowedLeft) {
-                // If the button is too wide to fit with buffers, center it!
-                randomX = (viewportWidth - btnWidth) / 2;
-            } else {
-                // Otherwise, pick a random spot within the safe zone
-                randomX = minAllowedLeft + Math.random() * (maxAllowedLeft - minAllowedLeft);
-            }
-
-            // VERTICAL CHECK
             const maxAllowedTop = viewportHeight - btnHeight - buffer;
             const minAllowedTop = buffer;
 
+            let randomX, randomY;
+
+            // 4. Smart Positioning Logic
+            // If screen is too small for buffer, just center it
+            if (maxAllowedLeft < minAllowedLeft) {
+                randomX = (viewportWidth - btnWidth) / 2;
+            } else {
+                randomX = minAllowedLeft + Math.random() * (maxAllowedLeft - minAllowedLeft);
+            }
+
             if (maxAllowedTop < minAllowedTop) {
-                // If too tall (unlikely, but safe), center vertically
                 randomY = (viewportHeight - btnHeight) / 2;
             } else {
                 randomY = minAllowedTop + Math.random() * (maxAllowedTop - minAllowedTop);
@@ -249,6 +260,10 @@
         function handleYes() {
             askStep.style.opacity = '0';
             noBtn.style.display = 'none';
+            // If moved to body, we need to remove it from there too if it still exists
+            if (noBtn.parentNode === document.body) {
+                document.body.removeChild(noBtn);
+            }
             
             setTimeout(() => {
                 askStep.style.display = 'none';
@@ -285,7 +300,6 @@
             }());
         }
 
-        // Prevent Pinch Zoom
         document.addEventListener('touchmove', (e) => {
             if (e.scale !== 1) e.preventDefault();
         }, { passive: false });
