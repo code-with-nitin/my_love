@@ -45,15 +45,18 @@
 
         /* Button Styling */
         #noBtn {
-            transition: all 0.1s ease; /* Faster transition for snappier movement */
+            transition: top 0.1s ease, left 0.1s ease; /* Smooth movement */
             position: relative;
             z-index: 9999; /* MAXIMUM PRIORITY: Always on top of everything */
+            white-space: nowrap; /* Prevent text wrapping weirdness */
+            max-width: 90vw; /* Ensure it never exceeds 90% of screen width */
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         #yesBtn {
             transition: transform 0.2s ease;
             z-index: 1; /* Base level */
-            /* Removed fixed positioning so it stays in flow */
         }
 
         /* Wiggle Animation for No Button */
@@ -121,7 +124,7 @@
             <h2 class="text-4xl font-bold text-pink-600 mb-4">Thank you! 😍</h2>
             <p class="text-xl text-gray-700 hand-font">
                 Hehe!! I knew that. You made my day! <br>
-                <span class="text-sm text-gray-500 mt-2 block">(Send him a screenshot of this screen!)</span>
+                <span class="text-sm text-gray-500 mt-2 block">(Send me a screenshot of this screen pls!)</span>
             </p>
             <div class="mt-8 text-pink-400 text-sm">
                 📅 Date details pending...
@@ -131,6 +134,7 @@
     </div>
 
     <script>
+        // --- Configuration ---
         const phrases = [
             "Please? 🥹👉🏻👈🏻",
             "Are you sure? 🧐",
@@ -148,14 +152,14 @@
             "I promise I'm fun! 🎢"
         ];
 
+        let phraseIndex = 0;
+        let scaleFactor = 1;
+
         const noBtn = document.getElementById('noBtn');
         const yesBtn = document.getElementById('yesBtn');
         const askStep = document.getElementById('askStep');
         const successStep = document.getElementById('successStep');
         const heartsContainer = document.getElementById('heartsContainer');
-
-        let phraseIndex = 0;
-        let scaleFactor = 1;
 
         // --- Hearts Animation ---
         function createHeart() {
@@ -172,49 +176,60 @@
 
         // --- Interaction Logic ---
         const moveButton = () => {
-            // 1. Change text to next phrase
+            // 1. Change text
             noBtn.innerText = phrases[phraseIndex];
             phraseIndex = (phraseIndex + 1) % phrases.length;
 
-            // 2. Move "No" Button (Strict Boundary Enforcement)
-            
-            // Force strict Fixed positioning
+            // 2. Force Position Fixed
             noBtn.style.position = 'fixed';
             
-            // Get current window size
-            const viewportWidth = window.innerWidth;
-            const viewportHeight = window.innerHeight;
-            
-            // Get exact button dimensions *after* text update
+            // 3. Get Dimensions & Viewport
             const btnRect = noBtn.getBoundingClientRect();
             const btnWidth = btnRect.width;
             const btnHeight = btnRect.height;
             
-            // INCREASED BUFFER: 50px padding from all edges
-            const buffer = 50;
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+
+            // 4. Calculate Boundaries with Smart Center Logic
+            const buffer = 20; // Safe distance from edge
+
+            // Max possible Left position (Screen Width - Button Width - Buffer)
+            const maxAllowedLeft = viewportWidth - btnWidth - buffer;
+            const minAllowedLeft = buffer;
             
-            // Calculate valid range
-            // We subtract buffer from BOTH sides to ensure it's not near any edge
-            const maxX = viewportWidth - btnWidth - buffer;
-            const maxY = viewportHeight - btnHeight - buffer;
+            let randomX;
+            let randomY;
 
-            // Ensure we never get a negative range (if screen is tiny, just center it or use buffer)
-            const safeMaxX = Math.max(buffer, maxX);
-            const safeMaxY = Math.max(buffer, maxY);
+            // HORIZONTAL CHECK
+            if (maxAllowedLeft < minAllowedLeft) {
+                // If the button is too wide to fit with buffers, center it!
+                randomX = (viewportWidth - btnWidth) / 2;
+            } else {
+                // Otherwise, pick a random spot within the safe zone
+                randomX = minAllowedLeft + Math.random() * (maxAllowedLeft - minAllowedLeft);
+            }
 
-            // Generate position
-            const randomX = Math.floor(Math.random() * (safeMaxX - buffer)) + buffer;
-            const randomY = Math.floor(Math.random() * (safeMaxY - buffer)) + buffer;
+            // VERTICAL CHECK
+            const maxAllowedTop = viewportHeight - btnHeight - buffer;
+            const minAllowedTop = buffer;
+
+            if (maxAllowedTop < minAllowedTop) {
+                // If too tall (unlikely, but safe), center vertically
+                randomY = (viewportHeight - btnHeight) / 2;
+            } else {
+                randomY = minAllowedTop + Math.random() * (maxAllowedTop - minAllowedTop);
+            }
             
-            // Apply coordinates
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
+            // 5. Apply Coordinates
+            noBtn.style.left = `${randomX}px`;
+            noBtn.style.top = `${randomY}px`;
 
-            // 3. Grow "Yes" Button in Place
+            // 6. Grow "Yes" Button
             scaleFactor += 0.5;
             yesBtn.style.transform = `scale(${scaleFactor})`;
             
-            // 4. Add wiggle effect
+            // 7. Wiggle
             noBtn.classList.remove('wiggle');
             void noBtn.offsetWidth; 
             noBtn.classList.add('wiggle');
