@@ -11,7 +11,7 @@
         body {
             font-family: 'Fredoka', sans-serif;
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            overflow: hidden; /* Prevent scrollbars when button moves */
+            overflow: hidden; /* Keep the chaos contained */
         }
 
         .hand-font {
@@ -25,7 +25,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: -1;
+            z-index: 0;
             overflow: hidden;
             pointer-events: none;
         }
@@ -43,12 +43,20 @@
             100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
         }
 
-        /* Button Transition */
+        /* Button Styling */
         #noBtn {
-            transition: all 0.2s ease;
-            position: relative; /* default position in flow */
+            transition: all 0.1s ease; /* Faster transition for snappier movement */
+            position: relative;
+            z-index: 9999; /* MAXIMUM PRIORITY: Always on top of everything */
         }
 
+        #yesBtn {
+            transition: transform 0.2s ease;
+            z-index: 1; /* Base level */
+            /* Removed fixed positioning so it stays in flow */
+        }
+
+        /* Wiggle Animation for No Button */
         .wiggle {
             animation: wiggle 0.5s ease-in-out infinite;
         }
@@ -67,6 +75,8 @@
         .visible-step {
             display: flex;
             opacity: 1;
+            z-index: 10;
+            position: relative;
         }
     </style>
 </head>
@@ -79,41 +89,39 @@
     <div class="relative w-full max-w-md mx-4">
         
         <!-- Step 1: The Question -->
-        <div id="askStep" class="visible-step flex-col items-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border-4 border-white ring-4 ring-pink-100 text-center transition-all duration-300 transform hover:scale-[1.02]">
+        <div id="askStep" class="visible-step flex-col items-center bg-white/80 backdrop-blur-sm p-8 rounded-3xl shadow-xl border-4 border-white ring-4 ring-pink-100 text-center">
             
-            <!-- Cute Header Emoji/Image -->
             <div class="text-6xl mb-4 animate-bounce">
                 🐻💌
             </div>
 
-            <h1 class="text-2xl md:text-3xl font-bold text-pink-600 mb-2 leading-tight">
-                Just wanted to let you know that your smile is the cutest thing I say today. 😍
+            <h1 class="text-2xl md:text-3xl font-bold text-pink-600 mb-2 leading-tight relative z-10">
+                Just wanted to let you know that your smile is the cutest thing I saw today. 😍
             </h1>
-            <p class="text-gray-600 text-lg mb-8 mt-4 hand-font font-semibold">
+            <p class="text-gray-600 text-lg mb-8 mt-4 hand-font font-semibold relative z-10">
                 Will you consider going out with me to see if we vibe? 😁👉🏻👈🏻
             </p>
 
-            <div class="flex flex-wrap justify-center gap-4 w-full relative min-h-[60px]">
-                <button id="yesBtn" onclick="handleYes()" class="px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full shadow-lg transform transition hover:-translate-y-1 hover:shadow-xl active:scale-95 text-xl z-10">
+            <div class="flex flex-wrap justify-center gap-4 w-full relative min-h-[60px] items-center">
+                <button id="yesBtn" onclick="handleYes()" class="px-8 py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-full shadow-lg text-xl transform origin-center">
                     Yes! 😍
                 </button>
                 
-                <!-- The 'No' Button - Starts static, becomes absolute on interaction -->
-                <button id="noBtn" class="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full shadow-md transform transition duration-200 text-xl z-20">
+                <button id="noBtn" class="px-8 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-full shadow-md text-xl whitespace-nowrap">
                     No I Won't
                 </button>
             </div>
         </div>
 
         <!-- Step 2: Success -->
-        <div id="successStep" class="hidden-step flex-col items-center bg-white/90 backdrop-blur-md p-10 rounded-3xl shadow-2xl border-4 border-pink-300 text-center">
+        <div id="successStep" class="hidden-step flex-col items-center bg-white/90 backdrop-blur-md p-10 rounded-3xl shadow-2xl border-4 border-pink-300 text-center relative z-50">
             <div class="text-8xl mb-6 animate-pulse">
                 💖
             </div>
             <h2 class="text-4xl font-bold text-pink-600 mb-4">Thank you! 😍</h2>
             <p class="text-xl text-gray-700 hand-font">
-                You just made his day! <br>
-                <span class="text-sm text-gray-500 mt-2 block">(Send him a screenshot of this screen!)</span>
+                Hehe!! I knew that. You made my day! <br>
+                <span class="text-sm text-gray-500 mt-2 block">(Send me a screenshot of this screen please!)</span>
             </p>
             <div class="mt-8 text-pink-400 text-sm">
                 📅 Date details pending...
@@ -123,7 +131,6 @@
     </div>
 
     <script>
-        // --- Configuration ---
         const phrases = [
             "Please? 🥹👉🏻👈🏻",
             "Are you sure? 🧐",
@@ -147,124 +154,123 @@
         const successStep = document.getElementById('successStep');
         const heartsContainer = document.getElementById('heartsContainer');
 
-        let phraseIndex = 0; // Back to sequential index
+        let phraseIndex = 0;
         let scaleFactor = 1;
 
-        // --- Initial Setup: Background Hearts ---
+        // --- Hearts Animation ---
         function createHeart() {
             const heart = document.createElement('div');
             heart.classList.add('heart');
             heart.innerHTML = ['❤️', '💖', '🌸', '✨', '🦋'][Math.floor(Math.random() * 5)];
             heart.style.left = Math.random() * 100 + 'vw';
-            heart.style.animationDuration = Math.random() * 10 + 10 + 's'; // 10-20s
+            heart.style.animationDuration = Math.random() * 10 + 10 + 's';
             heart.style.fontSize = Math.random() * 20 + 10 + 'px';
             heartsContainer.appendChild(heart);
-            
-            // Cleanup
-            setTimeout(() => {
-                heart.remove();
-            }, 20000);
+            setTimeout(() => heart.remove(), 20000);
         }
         setInterval(createHeart, 500);
 
-
         // --- Interaction Logic ---
-        
-        // Function to move the No button
         const moveButton = () => {
-            // Make button absolute if it isn't already
-            if (noBtn.style.position !== 'absolute') {
-                noBtn.style.position = 'absolute';
-            }
-
-            // Get window dimensions
-            const maxWidth = window.innerWidth - noBtn.offsetWidth;
-            const maxHeight = window.innerHeight - noBtn.offsetHeight;
-
-            // Calculate random position, keeping it within some padding
-            const randomX = Math.max(20, Math.random() * (maxWidth - 40));
-            const randomY = Math.max(20, Math.random() * (maxHeight - 40));
-
-            // Apply new position (using fixed to break out of the card container flow)
-            noBtn.style.position = 'fixed'; 
-            noBtn.style.left = randomX + 'px';
-            noBtn.style.top = randomY + 'px';
-
-            // Change Text Sequentially
+            // 1. Change text to next phrase
             noBtn.innerText = phrases[phraseIndex];
             phraseIndex = (phraseIndex + 1) % phrases.length;
 
-            // Make Yes button grow slightly to encourage clicking it
-            scaleFactor += 0.1;
+            // 2. Move "No" Button (Strict Boundary Enforcement)
+            
+            // Force strict Fixed positioning to escape any flex container constraints
+            noBtn.style.position = 'fixed';
+            
+            // Get viewport dimensions
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            // Get button dimensions *after* text update
+            const btnRect = noBtn.getBoundingClientRect();
+            const btnWidth = btnRect.width;
+            const btnHeight = btnRect.height;
+            
+            // Define safe area (padding from edge)
+            const padding = 20;
+            
+            // Calculate max allowable X and Y positions
+            const maxX = viewportWidth - btnWidth - padding;
+            const maxY = viewportHeight - btnHeight - padding;
+            
+            // Generate random position within safe area
+            // Math.max(padding, ...) ensures it doesn't go off the top/left
+            // Math.min(maxX, ...) ensures it doesn't go off the bottom/right
+            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
+            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
+            
+            // Apply new coordinates
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+
+            // 3. Grow "Yes" Button in Place
+            scaleFactor += 0.5;
             yesBtn.style.transform = `scale(${scaleFactor})`;
             
-            // Add a little wiggle to the No button for personality
+            // 4. Add wiggle effect to "No" button
+            noBtn.classList.remove('wiggle');
+            void noBtn.offsetWidth; // Trigger reflow
             noBtn.classList.add('wiggle');
-            setTimeout(() => noBtn.classList.remove('wiggle'), 500);
         };
 
-        // Desktop: Run away on hover
-        noBtn.addEventListener('mouseover', moveButton);
-        
-        // Mobile: Run away on touch/click
-        noBtn.addEventListener('click', (e) => {
-            e.preventDefault(); // Prevent actual click
+        // Handle both Click and Touch
+        const handleNoInteraction = (e) => {
+            e.preventDefault(); // Stop default behavior
+            e.stopPropagation(); // Stop event bubbling
             moveButton();
-        });
-        noBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent default touch behavior
-            moveButton();
-        });
+        };
+
+        noBtn.addEventListener('click', handleNoInteraction);
+        noBtn.addEventListener('touchstart', handleNoInteraction);
 
         // --- Success Logic ---
         function handleYes() {
-            // Hide Ask, Show Success
             askStep.style.opacity = '0';
-            noBtn.style.display = 'none'; // Remove the rogue button
+            noBtn.style.display = 'none';
+            // We don't remove yesBtn immediately to prevent jarring layout shift before fade
             
             setTimeout(() => {
                 askStep.style.display = 'none';
                 successStep.style.display = 'flex';
-                
-                // Trigger fade in
-                requestAnimationFrame(() => {
-                    successStep.style.opacity = '1';
-                });
-                
+                requestAnimationFrame(() => successStep.style.opacity = '1');
                 triggerConfetti();
             }, 500);
         }
 
         function triggerConfetti() {
             const duration = 3000;
-            const animationEnd = Date.now() + duration;
-            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+            const end = Date.now() + duration;
+            const colors = ['#bb0000', '#ffffff'];
 
-            const random = (min, max) => Math.random() * (max - min) + min;
+            (function frame() {
+                confetti({
+                    particleCount: 2,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 2,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: colors
+                });
 
-            const interval = setInterval(function() {
-                const timeLeft = animationEnd - Date.now();
-
-                if (timeLeft <= 0) {
-                    return clearInterval(interval);
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
                 }
-
-                const particleCount = 50 * (timeLeft / duration);
-                
-                confetti(Object.assign({}, defaults, { 
-                    particleCount, 
-                    origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } 
-                }));
-                confetti(Object.assign({}, defaults, { 
-                    particleCount, 
-                    origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } 
-                }));
-            }, 250);
+            }());
         }
 
-        // Prevent pinch zoom to keep the game fair
-        document.addEventListener('touchmove', function(event) {
-            if (event.scale !== 1) { event.preventDefault(); }
+        // Prevent Pinch Zoom
+        document.addEventListener('touchmove', (e) => {
+            if (e.scale !== 1) e.preventDefault();
         }, { passive: false });
 
     </script>
