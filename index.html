@@ -8,10 +8,17 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
+        /* Added smooth behavior for the scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+
         body {
             font-family: 'Fredoka', sans-serif;
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
-            overflow: hidden; /* Keep the chaos contained */
+            /* Allow vertical scroll, hide horizontal */
+            overflow-y: auto;
+            overflow-x: hidden;
         }
 
         .hand-font {
@@ -87,7 +94,8 @@
         }
     </style>
 </head>
-<body class="h-screen w-screen flex items-center justify-center bg-pink-50 relative selection:bg-pink-200">
+<!-- Changed h-screen to min-h-screen and added padding to ensure content isn't cut off on small screens -->
+<body class="min-h-screen w-screen flex items-center justify-center bg-pink-50 relative selection:bg-pink-200 py-10">
 
     <!-- Background Hearts Container -->
     <div class="hearts-bg" id="heartsContainer"></div>
@@ -128,7 +136,7 @@
             <h2 class="text-4xl font-bold text-pink-600 mb-4">Thank you! 😍</h2>
             <p class="text-xl text-gray-700 hand-font">
                 Hehe!! I knew that. You made my day! <br>
-                <span class="text-sm text-gray-500 mt-2 block">(Send me a screenshot of this screen pls!)</span>
+                <span class="text-sm text-gray-500 mt-2 block">(Send him a screenshot of this screen!)</span>
             </p>
             <div class="mt-8 text-pink-400 text-sm">
                 📅 Date details pending...
