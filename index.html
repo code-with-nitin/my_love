@@ -121,7 +121,7 @@
             <h2 class="text-4xl font-bold text-pink-600 mb-4">Thank you! 😍</h2>
             <p class="text-xl text-gray-700 hand-font">
                 Hehe!! I knew that. You made my day! <br>
-                <span class="text-sm text-gray-500 mt-2 block">(Send me a screenshot of this screen please!)</span>
+                <span class="text-sm text-gray-500 mt-2 block">(Send him a screenshot of this screen!)</span>
             </p>
             <div class="mt-8 text-pink-400 text-sm">
                 📅 Date details pending...
@@ -178,32 +178,35 @@
 
             // 2. Move "No" Button (Strict Boundary Enforcement)
             
-            // Force strict Fixed positioning to escape any flex container constraints
+            // Force strict Fixed positioning
             noBtn.style.position = 'fixed';
             
-            // Get viewport dimensions
+            // Get current window size
             const viewportWidth = window.innerWidth;
             const viewportHeight = window.innerHeight;
             
-            // Get button dimensions *after* text update
+            // Get exact button dimensions *after* text update
             const btnRect = noBtn.getBoundingClientRect();
             const btnWidth = btnRect.width;
             const btnHeight = btnRect.height;
             
-            // Define safe area (padding from edge)
-            const padding = 20;
+            // INCREASED BUFFER: 50px padding from all edges
+            const buffer = 50;
             
-            // Calculate max allowable X and Y positions
-            const maxX = viewportWidth - btnWidth - padding;
-            const maxY = viewportHeight - btnHeight - padding;
+            // Calculate valid range
+            // We subtract buffer from BOTH sides to ensure it's not near any edge
+            const maxX = viewportWidth - btnWidth - buffer;
+            const maxY = viewportHeight - btnHeight - buffer;
+
+            // Ensure we never get a negative range (if screen is tiny, just center it or use buffer)
+            const safeMaxX = Math.max(buffer, maxX);
+            const safeMaxY = Math.max(buffer, maxY);
+
+            // Generate position
+            const randomX = Math.floor(Math.random() * (safeMaxX - buffer)) + buffer;
+            const randomY = Math.floor(Math.random() * (safeMaxY - buffer)) + buffer;
             
-            // Generate random position within safe area
-            // Math.max(padding, ...) ensures it doesn't go off the top/left
-            // Math.min(maxX, ...) ensures it doesn't go off the bottom/right
-            const randomX = Math.max(padding, Math.floor(Math.random() * maxX));
-            const randomY = Math.max(padding, Math.floor(Math.random() * maxY));
-            
-            // Apply new coordinates
+            // Apply coordinates
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
 
@@ -211,16 +214,16 @@
             scaleFactor += 0.5;
             yesBtn.style.transform = `scale(${scaleFactor})`;
             
-            // 4. Add wiggle effect to "No" button
+            // 4. Add wiggle effect
             noBtn.classList.remove('wiggle');
-            void noBtn.offsetWidth; // Trigger reflow
+            void noBtn.offsetWidth; 
             noBtn.classList.add('wiggle');
         };
 
         // Handle both Click and Touch
         const handleNoInteraction = (e) => {
-            e.preventDefault(); // Stop default behavior
-            e.stopPropagation(); // Stop event bubbling
+            e.preventDefault(); 
+            e.stopPropagation();
             moveButton();
         };
 
@@ -231,7 +234,6 @@
         function handleYes() {
             askStep.style.opacity = '0';
             noBtn.style.display = 'none';
-            // We don't remove yesBtn immediately to prevent jarring layout shift before fade
             
             setTimeout(() => {
                 askStep.style.display = 'none';
